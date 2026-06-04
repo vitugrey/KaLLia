@@ -44,7 +44,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # ============ Configurações do Servidor ============ #
 HOST = _server.get("host", "0.0.0.0")
-PORT = _server.get("port", 8000)
+PORT = _server.get("port", 1904)
 
 # ============ Configurações do Agente ============ #
 GEMINI_MODEL_LLM = _agent.get("gemini_model_llm", "gemini-2.5-flash")

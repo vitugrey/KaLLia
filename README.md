@@ -1,18 +1,18 @@
 <div align="center">
-  <h1>🧠 KaLLia Server Central 🧠</h1>
-  <p><i>Cérebro centralizado da KaLLia para Raspberry Pi e integrações de API web com design modular</i></p>
+  <h1>🧠 KaLLia API 🧠</h1>
+  <p><i>Cérebro centralizado e multi-agente que gerencia as multipersonalidades da assistente virtual KaLLia</i></p>
   
   ![Python](https://img.shields.io/badge/python-3.13-blue)
   ![Framework](https://img.shields.io/badge/agent%20framework-Agno-orange)
   ![API](https://img.shields.io/badge/api-FastAPI-green)
-  ![Status](https://img.shields.io/badge/status-concluido-brightgreen)
+  ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
 </div>
 
 ---
 
 ## 🎯 Sobre o Projeto
 
-**KaLLia Server Central** é o cérebro modular e distribuído da assistente virtual na versão 3.0. Ele foi projetado para rodar levemente em um contêiner no Raspberry Pi, expondo uma API FastAPI rápida que gerencia o fluxo de conversação e centraliza o histórico de sessões em SQLite. Desta forma, diferentes clientes (como o bot de voz do PC e o aplicativo de finanças) podem conversar com a mesma inteligência.
+**KaLLia API** é o cérebro centralizado da assistente virtual KaLLia na versão 3.0. Ele gerencia as multipersonalidades da assistente virtual e foi projetado para rodar diretamente em um contêiner no Raspberry Pi, sendo consumido por meio de requisições de API dentro da própria rede local (como o script de voz no PC e outros aplicativos).
 
 ---
 
@@ -46,8 +46,8 @@ Banco SQLite local no servidor que mantém o contexto de até 5 mensagens anteri
 ### Inicialização do Servidor
 ```bash
 # Clone o repositório
-git clone https://github.com/vitugrey/kallia-server
-cd kallia-server
+git clone https://github.com/vitugrey/kallia-api
+cd kallia-api
 
 # Instalar dependências com UV
 uv sync
@@ -79,8 +79,9 @@ Acesse a documentação da API em `http://127.0.0.1:8000/docs`.
 - [x] **Fallback automático**: Redundância resiliente com Groq.
 - [x] **Análise Multimodal**: Suporte a envio de imagens da tela em Base64.
 - [x] **Dockerização**: Dockerfile otimizado para Raspberry Pi.
-- [ ] **Integração Open Finance**: Conectar o agente de finanças às APIs bancárias.
-- [ ] **Dashboard Web**: Painel gráfico para visualizar logs das conversas e memórias.
+- [ ] **Criar Dashboard Web**: Painel gráfico para monitorar os logs, conversas e memórias.
+- [ ] **Criar as Tools**: Desenvolver e refinar as ferramentas customizadas de automação local.
+- [ ] **RAG do Diário**: Integrar banco vetorial (RAG) para ler o diário, escrever no diário e visualizar o diário.
 
 ---
 

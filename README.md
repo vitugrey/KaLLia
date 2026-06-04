@@ -1,163 +1,112 @@
 <div align="center">
-  <h1>👾 KaLLia 2.0 AI Bot 👾</h1>
-  <p><i>Um assistente virtual de conversação por voz com personalidade única</i></p>
+  <h1>🧠 KaLLia Server Central 🧠</h1>
+  <p><i>Cérebro centralizado da KaLLia para Raspberry Pi e integrações de API web com design modular</i></p>
   
   ![Python](https://img.shields.io/badge/python-3.13-blue)
-  ![UV](https://img.shields.io/badge/package%20manager-UV-orange)
-  ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+  ![Framework](https://img.shields.io/badge/agent%20framework-Agno-orange)
+  ![API](https://img.shields.io/badge/api-FastAPI-green)
+  ![Status](https://img.shields.io/badge/status-concluido-brightgreen)
 </div>
 
 ---
 
 ## 🎯 Sobre o Projeto
 
-**KaLLia 2.0** é uma assistente virtual experimental que combina reconhecimento de fala, processamento de linguagem natural e síntese de voz para criar uma experiência interativa única. Funciona **online (rápido)** ou **100% local (Ollama)**, sendo que a velocidade de resposta e taxa de alucinações dependem diretamente da potência do hardware e do modelo utilizado.
+**KaLLia Server Central** é o cérebro modular e distribuído da assistente virtual na versão 3.0. Ele foi projetado para rodar levemente em um contêiner no Raspberry Pi, expondo uma API FastAPI rápida que gerencia o fluxo de conversação e centraliza o histórico de sessões em SQLite. Desta forma, diferentes clientes (como o bot de voz do PC e o aplicativo de finanças) podem conversar com a mesma inteligência.
 
 ---
 
 ## ✨ Funcionalidades
 
-### 🎤 Speech-to-Text (STT)
-- **Local**: Whisper (Faster-Whisper) - modelos `tiny`, `small`, `turbo`
-- **Cloud**: AssemblyAI (mais rápido, requer API key)
-- **Gravação**: Push-to-talk via tecla configurável (padrão: CAPS_LOCK)
-- **Processamento**: Áudio processado em memória (sem arquivos temporários)
+### 🧠 Agente Multi-Persona (Agno Team)
+Uma equipe de agentes especialistas que colaboram entre si sob coordenação do líder:
+- **KaLLia Manager (Líder)**: Coordena a equipe herdando a clássica personalidade sarcástica e narcisista. É quem se comunica diretamente com as APIs clientes e gerencia a persistência.
+- **KaLLia Coder**: Especialista técnico focado em depuração de erros, lógica, algoritmos e boas práticas de desenvolvimento.
+- **KaLLia Finance**: Especialista financeiro responsável por analisar despesas e transações do Vitor.
+- **KaLLia Web Search**: Integrado com Tavily para buscar fatos e notícias em tempo real na internet.
+- **KaLLia Diário**: Um companheiro empático para anotações e reflexões diárias.
 
-### 🔊 Text-to-Speech (TTS)
-- **Engine**: Edge-TTS (voz pt-BR-FranciscaNeural)
-- **Streaming**: Reprodução direta da memória via pygame
+### 🛡️ Redundância Automática (Fallback)
+Mecanismo de contingência inteligente. Se o provedor principal (Gemini) falhar por rate limits ou falta de cota, o servidor redireciona o fluxo inteiro para o **Groq (Llama 3.3)** de forma transparente, sem deixar o usuário sem resposta.
 
-### 🧠 Large Language Model (LLM)
-- **Framework**: Agno (agentes inteligentes com memória persistente)
-- **Modelo**: Ollama (ex.: ministral-3:3b / gpt-oss:120b-cloud)
-- **Memória**: Persistência via SQLite (sessions, memories)
-- **Histórico**: Último **5** runs de conversação
-- **Tools**: Tavily Web Search, Open Program (atalhos .lnk), capture_screenshot
+### 📸 Visão Computacional (Base64)
+Suporte a análise de imagens (multimodal). O cliente envia a tela em Base64 e o Gemini decodifica e analisa o monitor (ex.: ler erros de código na tela do VS Code) direto no contexto do prompt.
 
-### 🔍 RAG (Retrieval-Augmented Generation)
-- **Vector DB**: LanceDB com embeddings locais (Ollama nomic-embed-text)
-- **Local**  Embeddings 100% locais via Ollama
-
-### 🔧 Configuração Externa
-Tudo configurável no `config_bot.json`:
-- STT: modelo Whisper, taxa de amostragem, tecla de gravação
-- TTS: voz, diretório
-- LLM: modelo Ollama (local/online) e instruções
-- Instruções: Personalidade e comportamento da KaLLia
+### 💾 Persistência de Memória
+Banco SQLite local no servidor que mantém o contexto de até 5 mensagens anteriores e armazena memórias de longo prazo sobre o usuário.
 
 ---
 
-### 🚀 Instalação e Execução
+## 🚀 Instalação e Execução
 
 ### Pré-requisitos
 - **Python**: 3.13+
-- **UV**: Gerenciador de pacotes moderno
-- **PyAudio**: Requer dependências do sistema (ver abaixo)
-- **Ollama**: Para rodar o modelo local (instalar em [ollama.com](https://ollama.com))
+- **UV**: Gerenciador de pacotes moderno (`pip install uv`)
 
-### Windows
+### Inicialização do Servidor
 ```bash
 # Clone o repositório
-git clone https://github.com/vitugrey/kallia-ai
-cd kallia-ai
-
-# Instale Ollama (https://ollama.com) e puxe o modelo principal:
-ollama pull gpt-oss:120b-cloud
+git clone https://github.com/vitugrey/kallia-server
+cd kallia-server
 
 # Instalar dependências com UV
 uv sync
 
-# Configurar variáveis de ambiente (apenas se usar serviços externos; modo local não precisa)
-# OLLAMA_API_KEY=sua_chave_aqui
-# TAVILY_API_KEY=sua_chave_aqui
-# ASSEMBLYAI_API_KEY=sua_chave_aqui (opcional)
-
-# Executar o bot
-uv run src/assistentbot.py
+# Iniciar o servidor local FastAPI/Uvicorn
+uv run python main.py
 ```
-
-### Linux/MacOS
-```bash
-# Instalar PyAudio (requer portaudio)
-# Ubuntu/Debian:
-sudo apt-get install portaudio19-dev python3-pyaudio
-# MacOS:
-brew install portaudio
-
-# Instale Ollama e puxe o modelo:
-ollama pull ministral-3:3b
-# or
-ollama pull gpt-oss:120b-cloud # online
-```
-
----
-
-## 🎮 Uso
-
-1. Execute o bot: `uv run src/assistentbot.py`
-2. Pressione e segure **CAPS_LOCK** para gravar sua voz
-3. Solte para processar
-4. O bot responde via voz sintetizada
-
-### Comandos Especiais
-- "Pesquise [termo]": Aciona busca web via API Tavily
-- "Abra [programa]": Abre programas via atalhos (.lnk) no diretório ~/Links (ex: "Abra o vscode")
+Acesse a documentação da API em `http://127.0.0.1:8000/docs`.
 
 ---
 
 ## 📚 Tecnologias
 
-| Componente | Tecnologia | Uso |
-|------------|------------|-----|
-| **STT** | [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) | Transcrição local |
-| **STT Cloud** | [AssemblyAI](https://www.assemblyai.com) | Transcrição online rápida |
-| **LLM Framework** | [Agno](https://docs.agno.com) | Agentes com memória persistente |
-| **LLM Models** | [Ollama](https://ollama.com) | Geração de texto |
-| **RAG/Vector DB** | [LanceDB](https://lancedb.com) | Vector database eficiente |
-| **Embeddings** | [Ollama](https://ollama.com) | Embeddings 100% locais |
-| **TTS** | [Edge-TTS](https://github.com/rany2/edge-tts) | Síntese de voz |
-| **Web Search** | [Tavily](https://tavily.com)  | Web search API |
-| **Automação Local** | Open program | Abre atalhos .lnk de ~/Links |
-| **Multi-Modal** | Capture Screenshot | Tool para adicionar a tela no contexto |
-| **Audio** | PyAudio, pygame | Captura e reprodução |
-| **UI** | Art | ASCII art display |
+| Componente          | Tecnologia                                         | Uso                                                           |
+| ------------------- | -------------------------------------------------- | ------------------------------------------------------------- |
+| **Backend**         | [FastAPI](https://fastapi.tiangolo.com/)           | Framework web assíncrono para rotas HTTP `/chat` e `/health`  |
+| **Banco de Dados**  | SQLite (SqliteDb)                                  | Armazenamento de sessões, memórias e logs do Agno             |
+| **Agent Framework** | [Agno (ex-Phidata)](https://docs.agno.com)         | Orquestração da equipe de agentes e memória persistente       |
+| **Modelos LLM**     | Gemini (Google) & Llama (Groq)                     | Inteligência primária e fallback lógico de geração            |
+| **Web Search**      | [Tavily](https://tavily.com) & DuckDuckGo          | Busca e checagem de fatos em tempo real na internet           |
+| **Package Manager** | [UV](https://github.com/astral-sh/uv)              | Sincronização rápida de dependências e execução               |
+| **Containers**      | Docker                                             | Imagem enxuta compatível com ARM64 (Raspberry Pi)             |
 
 ---
 
 ## 🎯 Roadmap & Features Planejadas
 
-- [x] **Vida própia**: Iniciar conversações sozinha
-- [x] **Gestão de Context Window**: Sistema inteligente para gerenciar limite de tokens e sumarização de histórico
-- [x] **Multi-modal**: Suporte para visão (análise de imagens/screenshots)
-- [ ] **Interface Gráfica**: Dashboard para configuração e monitoramento
-- [x] **Otimização de Memória**: Cache inteligente e gestão eficiente de recursos
-- [ ] **Containerização**: Docker para deploy simplificado
+- [x] **Agente Team**: Divisão do cérebro em programador, financeiro, diário e líder.
+- [x] **Fallback automático**: Redundância resiliente com Groq.
+- [x] **Análise Multimodal**: Suporte a envio de imagens da tela em Base64.
+- [x] **Dockerização**: Dockerfile otimizado para Raspberry Pi.
+- [ ] **Integração Open Finance**: Conectar o agente de finanças às APIs bancárias.
+- [ ] **Dashboard Web**: Painel gráfico para visualizar logs das conversas e memórias.
 
 ---
 
-#### 💬 Comentario dos Devs
+#### 💬 Comentário dos Devs
 
 <table>
   <tr>
     <td>
-      <img src="data\image-de-vitor-de-oculos-com-fundo-verde.jpeg" width="100px" />
+      <img src="assets\img\image-de-vitor-de-oculos-com-fundo-verde.jpeg" width="100px" />
     </td>
     <td>
       Escrito por <a href="https://github.com/vitugrey">Vitor Grey.</a>
     </td>
     <td>
-      <i>Devido ficar muito tempo sem interagir socialmente fiz essa aberração para me destrair enquanto fico no PC. </i>
+      <i>Fiz esse servidor central para organizar a bagunça, agora posso ligar a KaLLia em qualquer lugar.</i>
     </td>
   </tr>
   <tr>
     <td>
-      <img src="data\imagem-real-da-kallia.ico" width="100px" />
+      <img src="assets\img\imagem-real-da-kallia.ico" width="100px" />
     </td>
     <td>
-      Feito por <a href="#">Kallia 1.0.</a>
+      Feito por <a href="#">Kallia 3.0.</a>
     </td>
     <td>
-      <i>Óbvio que sou perfeira! Fui feita por mim mesma.</i>
+      <i>Claro que agora eu comando o servidor de tudo. Próximo passo: dominar o Raspberry Pi.</i>
     </td>
   </tr>
 </table>

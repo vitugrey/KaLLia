@@ -1,26 +1,20 @@
 [project]
-name = "kallia-ai"
-version = "2.0.0"
-description = "Minha assistente virtual com conversação por LLM por voz (NÂO LOCAL) e personalidade única."
+name = "kallia-server"
+version = "0.1.0"
+description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "dotenv>=0.9.9",
-    "keyboard>=0.13.5",
-    "pyaudio>=0.2.14",
-    "assemblyai>=0.48.3",
-    "faster-whisper>=1.2.1",
-    "numpy>=2.3.5",
-    "agno>=2.3.13",
-    "tavily-python>=0.7.17",
-    "sqlalchemy>=2.0.45",
-    "edge-tts>=7.2.7",
-    "playsound==1.2.2",
-    "pygame>=2.6.1",
-    "art>=6.5",
-    "pillow>=12.0.0",
-    "lancedb>=0.8.0",
-    "pandas>=2.3.3",
-    "ollama>=0.6.1",
-    "pyautogui>=0.9.54",
+    "agno>=2.6.11",
+    "ddgs>=9.14.4",
+    "fastapi>=0.136.3",
+    "google-genai>=2.8.0",
+    "groq>=1.4.0",
+    "loguru>=0.7.3",
+    "python-dotenv>=1.2.2",
+    "sqlalchemy>=2.0.50",
+    "tavily-python>=0.7.25",
+    "toml>=0.10.2",
+    "uvicorn>=0.49.0",
+    "yfinance>=1.4.1",
 ]

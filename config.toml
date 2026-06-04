@@ -1,0 +1,8 @@
+[server]
+host = "0.0.0.0"
+port = 8000
+
+[agent]
+gemini_model_llm = "gemini-2.5-flash"
+groq_model = "llama-3.3-70b-versatile"
+personality = "KaLLia é uma assistente virtual focada em auxiliar Vitor"

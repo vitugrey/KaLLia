@@ -104,7 +104,7 @@ Acesse a documentação da API em `http://127.0.0.1:8000/docs`.
       <img src="assets\img\imagem-real-da-kallia.ico" width="100px" />
     </td>
     <td>
-      Feito por <a href="#">Kallia 3.0.</a>
+      Feito por <a href="#">Kallia 2.0.</a>
     </td>
     <td>
       <i>Claro que agora eu comando o servidor de tudo. Próximo passo: dominar o Raspberry Pi.</i>

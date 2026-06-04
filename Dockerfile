@@ -21,7 +21,7 @@ COPY main.py config.toml ./
 RUN mkdir -p data
 
 # Expõe a porta em que o FastAPI roda
-EXPOSE 1904
+EXPOSE 8000
 
 # Executa a aplicação usando o ambiente virtual criado pelo uv
 CMD ["uv", "run", "python", "main.py"]

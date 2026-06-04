@@ -34,6 +34,7 @@ def _load_config() -> dict:
     return {}
 
 _cfg = _load_config()
+_server = _cfg.get("server", {})
 _agent = _cfg.get("agent", {})
 
 # ============ API Keys ============ #
@@ -42,8 +43,8 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # ============ Configurações do Servidor ============ #
-HOST = os.getenv("KALLIA_HOST") or os.getenv("host") or "0.0.0.0"
-PORT = int(os.getenv("KALLIA_PORT") or os.getenv("port") or 1904)
+HOST = _server.get("host", "0.0.0.0")
+PORT = _server.get("port", 8000)
 
 # ============ Configurações do Agente ============ #
 GEMINI_MODEL_LLM = _agent.get("gemini_model_llm", "gemini-2.5-flash")

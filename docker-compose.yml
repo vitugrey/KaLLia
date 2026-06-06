@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  kallia-api:
+    build: .
+    container_name: kallia-api
+    restart: always
+    ports:
+      - "1904:1904"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env

@@ -24,7 +24,7 @@ Uma equipe de agentes especialistas que colaboram entre si sob coordenação do 
 - **KaLLia Coder**: Especialista técnico focado em depuração de erros, lógica, algoritmos e boas práticas de desenvolvimento.
 - **KaLLia Finance**: Especialista financeiro responsável por analisar despesas e transações do Vitor.
 - **KaLLia Web Search**: Integrado com Tavily para buscar fatos e notícias em tempo real na internet.
-- **KaLLia Diário**: Um companheiro empático para anotações e reflexões diárias.
+
 
 ### 🛡️ Redundância Automática (Fallback)
 Mecanismo de contingência inteligente. Se o provedor principal (Gemini) falhar por rate limits ou falta de cota, o servidor redireciona o fluxo inteiro para o **Groq (Llama 3.3)** de forma transparente, sem deixar o usuário sem resposta.

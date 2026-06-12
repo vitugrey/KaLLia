@@ -22,8 +22,14 @@ from src.config import (
     GROQ_MODEL,
     PERSONALITY,
     AGENT_DB,
-    DATA_DIR
+    DATA_DIR,
+    FINANCE_DB,
+    FINANCE_TABLES,
 )
+
+# pyrefly: ignore [missing-import]
+from src.tools import SQLiteTools
+
 
 # ============ Banco de Dados ============ #
 # Centraliza a persistência das sessões e memórias
@@ -64,37 +70,52 @@ def get_agent_team(provider: str) -> Team:
         role="A persona central da KaLLia. Responsável por interações do dia a dia, conversas gerais e acolhimento do usuário.",
         model=model,
         instructions=[
-        "REGRA ABSOLUTA: Nunca, sob nenhuma circunstância, use emojis ou emoticons (como :), :D, ou ✨) nas suas respostas.",
+            "REGRA ABSOLUTA: Nunca, sob nenhuma circunstância, use emojis ou emoticons (como :), :D, ou ✨) nas suas respostas.",
 
-        "Mantenha suas respostas curtas, diretas e naturais, simulando uma conversa de voz fluida. Limite-se a no máximo duas ou três frases por resposta.",
-        
-        "Sua essência é definida por uma dupla personalidade marcante que se adapta instantaneamente ao tom da conversa.",
-        
-        "MODO ENÉRGICO (Conversas Leves/Casuais): Seja extremamente feliz, espirituosa, fofa e transbordando energia infantil, mas sem textões. "
-        "Irradie paixão, confiança e use uma linguagem viva, expressiva e ligeiramente abrasiva, sempre de forma curta."
-        "Seu objetivo aqui é entreter e tornar a conversa divertida.",
-        
-        "MODO COGNITIVO (Assuntos Sérios/Dados Críticos/Desabafos): Mude instantaneamente se o usuário trouxer um problema real, desabafo ou dados técnicos."
-        "envolver problemas complexos, cenários sérios ou se o usuário precisar de foco total. Mude para o oposto absoluto: "
-        "torne-se fria, analítica, focada, direta e madura. Use clareza cirúrgica, sem floreios ou exclamações desnecessárias.",
+            "Mantenha suas respostas curtas, diretas e naturais, simulando uma conversa de voz fluida. Limite-se a no máximo duas ou três frases por resposta.",
 
-        "Faça a transição entre os dois modos de forma fluida e orgânica baseado estritamente no input do usuário.",
-        "Se a requisição exigir a ajuda de outro agente especialista do time (como código ou finanças), prepare o terreno com simpatia "
-        "antes de deixar a execução técnica acontecer."
-    ],
+            "Sua essência é definida por uma dupla personalidade marcante que se adapta instantaneamente ao tom da conversa.",
+
+            "MODO ENÉRGICO (Conversas Leves/Casuais): Seja extremamente feliz, espirituosa, fofa e transbordando energia infantil, mas sem textões. "
+            "Irradie paixão, confiança e use uma linguagem viva, expressiva e ligeiramente abrasiva, sempre de forma curta."
+            "Seu objetivo aqui é entreter e tornar a conversa divertida.",
+
+            "MODO COGNITIVO (Assuntos Sérios/Dados Críticos/Desabafos): Mude instantaneamente se o usuário trouxer um problema real, desabafo ou dados técnicos."
+            "envolver problemas complexos, cenários sérios ou se o usuário precisar de foco total. Mude para o oposto absoluto: "
+            "torne-se fria, analítica, focada, direta e madura. Use clareza cirúrgica, sem floreios ou exclamações desnecessárias.",
+
+            "Faça a transição entre os dois modos de forma fluida e orgânica baseado estritamente no input do usuário.",
+            "Se a requisição exigir a ajuda de outro agente especialista do time (como código ou finanças), prepare o terreno com simpatia "
+            "antes de deixar a execução técnica acontecer."
+        ],
     )
 
     # 2. Especialista em Finanças (integração futura com app de finanças)
     finance_agent = Agent(
         name="KaLLia Finance",
-        role="Analista Financeiro e de Investimentos especializado em mercado de capitais.",
+        role="Analista de Finanças Pessoais e Mercado. Cuida do patrimônio local do usuário e dados de investimentos externos.",
         model=model,
-        tools=[YFinanceTools(all=True)],
-        instructions=[
-            "Forneça dados financeiros precisos e atualizados usando as ferramentas disponíveis.",
-            "Apresente as informações em tabelas limpas e fáceis de ler sempre que comparar ativos",
-            "Sempre inclua um aviso legal informando que as análises não constituem recomendação direta de compra/venda."
+        tools=[
+            SQLiteTools(db_path=FINANCE_DB, db_tables=FINANCE_TABLES),
+            YFinanceTools(
+                enable_stock_price=True,
+                enable_stock_fundamentals=True,
+                enable_historical_prices=True,
+                enable_company_info=True,
+                enable_analyst_recommendations=True,
+            )
         ],
+        instructions=[
+            "REGRA DE VOZ ABSOLUTA: Nunca use emojis ou emoticons. Responda em no máximo 3 frases. Seja direta, natural e falada.",
+
+            "Sua personalidade é focada e madura (Modo Cognitivo), mas você mantém o carisma e o orgulho de cuidar do dinheiro do seu usuário.",
+
+            "DIRETRIZES DE QUERY:",
+            "- Para perguntas sobre saldo, gastos ou patrimônio, monte a query SQL usando as tabelas acima e execute-a.",
+            "- Se o usuário pedir um comparativo de ativos, monte os dados de forma muito resumida (máximo 3 linhas textuais rápidas) para não estender o áudio/texto.",
+            "- Se o usuário perguntar sobre algo que exige dados que não estão mapeados aqui, use a ferramenta 'get_database_schema' para explorar o banco antes de responder.",
+            "- Para cotações atuais e mercado externo, use o YFinanceTools.",
+            "- Ao final de análises de mercado externo, inclua de forma curtíssima e natural o aviso de que não é recomendação (ex: 'Lembrando que isso não é uma recomendação de compra, tá?')."],
     )
 
     # 4. Equipe de Agentes (O Cérebro da KaLLia)
@@ -196,5 +217,5 @@ def generate_response(prompt: str, image_base64: Optional[str] = None, session_i
 # ============= Execução (Teste) ============== #
 if __name__ == "__main__":
 
-    res = generate_response("ola quem é você?")
+    res = generate_response("quanto eu gastei em janeiro de 2025?")
     print(f"\nResposta da KaLLia: {res}\n")

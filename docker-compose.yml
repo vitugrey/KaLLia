@@ -6,6 +6,7 @@ services:
     ports:
       - "1904:1904"
     volumes:
-      - ./data:/app/data
+      - .:/app
+      - ../Databases:/Databases
     env_file:
       - .env

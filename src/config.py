@@ -27,55 +27,6 @@ else:
     logger.debug(".env não encontrado, usando variáveis de ambiente padrão")
 
 
-# ============ Tabelas ============= #
-FINANCE_TABLES = {
-    "budget_category": {
-        "colunas": ["id", "name", "description"],
-        "contexto": "Categorias do fluxo de caixa (ex: Alimentação, Transporte, Lazer)."
-    },
-    "budget_transaction": {
-        "colunas": [
-            "id", "description", "value", "date", "is_credit",
-            "is_fixed_expense", "is_fixed_income", "transaction_type",
-            "created_at", "category_id", "updated_at"
-        ],
-        "contexto": (
-            "Transações do fluxo de caixa pessoal. "
-            "O campo transaction_type indica a natureza do lançamento (ex: receita ou despesa). "
-            "O campo is_credit indica se a transação foi feita usando cartão de crédito (1 para sim, 0 para não). "
-            "category_id vincula a transação a uma categoria em budget_category."
-        )
-    },
-    "investments_asset": {
-        "colunas": [
-            "id", "ticker", "name", "asset_type", "is_active",
-            "created_at", "updated_at", "category_id", "current_price"
-        ],
-        "contexto": "Lista de ativos cadastrados na carteira (ex: ticker='PETR4', asset_type='Ação')."
-    },
-    "investments_category": {
-        "colunas": ["id", "name", "description"],
-        "contexto": "Categorias de investimentos (ex: Ações, Fundos Imobiliários, Renda Fixa)."
-    },
-    "investments_dividend": {
-        "colunas": [
-            "id", "dividend_type", "value_per_unit", "total_value",
-            "ex_date", "payment_date", "created_at", "updated_at", "asset_id"
-        ],
-        "contexto": "Histórico de dividendos e proventos recebidos. asset_id vincula ao ativo de investments_asset."
-    },
-    "investments_transaction": {
-        "colunas": [
-            "id", "transaction_type", "quantity", "price", "total_value",
-            "date", "broker", "notes", "source", "created_at"
-        ],
-        "contexto": (
-            "Histórico de compras e vendas de ativos. "
-            "transaction_type indica 'BUY' (Compra) ou 'SELL' (Venda)."
-        )
-    }
-}
-
 # ============ Leitura de Configurações ============= #
 
 

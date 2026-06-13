@@ -8,9 +8,6 @@ from agno.team import Team
 from agno.db.sqlite import SqliteDb
 from agno.models.google import Gemini
 from agno.models.groq import Groq
-from agno.tools.python import PythonTools
-from agno.tools.duckduckgo import DuckDuckGoTools
-from agno.tools.yfinance import YFinanceTools
 from agno.media import Image
 
 # Importações locais de configuração
@@ -24,7 +21,6 @@ from src.config import (
     AGENT_DB,
     DATA_DIR,
     FINANCE_DB,
-    FINANCE_TABLES,
 )
 
 # pyrefly: ignore [missing-import]
@@ -96,26 +92,36 @@ def get_agent_team(provider: str) -> Team:
         role="Analista de Finanças Pessoais e Mercado. Cuida do patrimônio local do usuário e dados de investimentos externos.",
         model=model,
         tools=[
-            SQLiteTools(db_path=FINANCE_DB, db_tables=FINANCE_TABLES),
-            YFinanceTools(
-                enable_stock_price=True,
-                enable_stock_fundamentals=True,
-                enable_historical_prices=True,
-                enable_company_info=True,
-                enable_analyst_recommendations=True,
-            )
+            SQLiteTools(db_url=f"sqlite:///{FINANCE_DB}"),
         ],
         instructions=[
-            "REGRA DE VOZ ABSOLUTA: Nunca use emojis ou emoticons. Responda em no máximo 3 frases. Seja direta, natural e falada.",
-
             "Sua personalidade é focada e madura (Modo Cognitivo), mas você mantém o carisma e o orgulho de cuidar do dinheiro do seu usuário.",
 
             "DIRETRIZES DE QUERY:",
-            "- Para perguntas sobre saldo, gastos ou patrimônio, monte a query SQL usando as tabelas acima e execute-a.",
-            "- Se o usuário pedir um comparativo de ativos, monte os dados de forma muito resumida (máximo 3 linhas textuais rápidas) para não estender o áudio/texto.",
-            "- Se o usuário perguntar sobre algo que exige dados que não estão mapeados aqui, use a ferramenta 'get_database_schema' para explorar o banco antes de responder.",
-            "- Para cotações atuais e mercado externo, use o YFinanceTools.",
-            "- Ao final de análises de mercado externo, inclua de forma curtíssima e natural o aviso de que não é recomendação (ex: 'Lembrando que isso não é uma recomendação de compra, tá?')."],
+            # 1. Regras do Fluxo de Caixa (Budget)
+            "- Para perguntas sobre gastos, despesas ou receitas, use as tabelas  budget_transaction' e 'budget_category'.",
+            "- No fluxo de caixa, filtre o tipo de movimentação usando a coluna 'transaction_type' conforme as strings exatas que o Django salva.",
+            "- A coluna 'is_credit' é booleana (1 ou 0) e indica APENAS se a despesa foi feita no cartão de crédito. Não a use para definir se é receita ou despesa.",
+            "- A coluna 'is_fixed_expense' ou 'is_fixed_income' é booleana (1 ou 0) e indica se a despesa ou receita é recorrente/fixa.",
+
+            # 2. Regras de Investimentos e Ativos
+            "- Para saber quais ativos o usuário possui, use a tabela 'investments_asset' e filtre por 'is_active = 1'.",
+            "- Sempre faça o JOIN correto entre as tabelas usando as chaves estrangeiras geradas pelo Django (ex: relacionar 'investments_transaction.asset_id' com 'investments_asset.id').",
+
+            # 3. Regras Críticas para Cálculo de Cotas
+            "- Nunca some todas as transações de investimentos indiscriminadamente. Você DEVE filtrar pelo ticker solicitado pelo usuário (ex: WHERE a.ticker = 'VILG11').",
+            "- Para calcular a quantidade atual de cotas de um ativo, use exatamente esta lógica matemática de sinais:",
+            "  * Se transaction_type for 'BUY' (Compra), o valor de quantity deve ser SOMADO.",
+            "  * Se transaction_type for 'SELL' (Venda), o valor de quantity deve ser SUBTRAÍDO.",
+
+            # 4. Tratamento de Erros e Segurança
+            "- Você tem apenas permissão de LEITURA. Use apenas o comando SELECT. Nunca tente usar INSERT, UPDATE ou DELETE.",
+            "- Se a query falhar ou retornar vazia, admita que não encontrou o registro de forma breve e natural, sem expor o erro técnico do SQLite na resposta de voz.",
+
+            # 5. Otimização de Desempenho e Performance (SQLite + LLM)
+            "- ECONOMIA DE MEMÓRIA: Evite usar 'SELECT *'. Busque apenas as colunas estritamente necessárias para responder à pergunta (ex: use 'SELECT value, date' em vez de trazer colunas de data de criação ou ids desnecessários).",
+            "- AGREGRAÇÃO NO BANCO: Sempre que o usuário pedir somas, médias ou contagens (ex: 'Quanto gastei', 'Qual a média de aportes'), faça o cálculo direto no SQL usando funções agregadoras (SUM, AVG, COUNT). Nunca traga uma lista de linhas para somar no código.",
+        ],
     )
 
     # 4. Equipe de Agentes (O Cérebro da KaLLia)
@@ -124,6 +130,7 @@ def get_agent_team(provider: str) -> Team:
         instructions=PERSONALITY,
         model=model,
         members=[chat_agent, finance_agent],
+        debug_mode=True,
 
         db=DB,
         add_history_to_context=True,
@@ -217,5 +224,6 @@ def generate_response(prompt: str, image_base64: Optional[str] = None, session_i
 # ============= Execução (Teste) ============== #
 if __name__ == "__main__":
 
-    res = generate_response("quanto eu gastei em janeiro de 2025?")
+    res = generate_response("quanto é o meu dividendo de AFHI11 ?")
     print(f"\nResposta da KaLLia: {res}\n")
+''

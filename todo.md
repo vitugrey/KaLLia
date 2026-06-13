@@ -1,5 +1,7 @@
 ### Lista de Melhorias para KaLLia:
 
+    *   no raspberry parece que o agente não está conseguindo acessar o banco de dados
+
     *   Log para saber de onde está sendo chamado a API
     *   Log para saber quais agentes estão sendo chamados
 
@@ -8,6 +10,4 @@
     *   Renovar a interface do Telegram, alinhando-a com a personalidade e imagem da KaLLia.
     *   Implementar a funcionalidade RAG (Retrieval Augmented Generation) para o diário.
 
-
-commitar 
-usar
+    *   Limpar o database

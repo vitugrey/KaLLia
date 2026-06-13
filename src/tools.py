@@ -1,76 +1,48 @@
 # ============ Import ============= #
 import sqlite3
 from typing import Dict, List, Optional, Union
+import json
 
-from agno.tools import Toolkit
+from agno.tools.sql import SQLTools
 
 # pyrefly: ignore [missing-import]
-from src.config import AGENT_DB, FINANCE_DB, FINANCE_TABLES
+from src.config import AGENT_DB, FINANCE_DB
 
 
 # ============== Code =============== #
-class SQLiteTools(Toolkit):
-    def __init__(
-            self,
-            db_path: str = AGENT_DB,
-            db_tables: Optional[Dict[str, Dict[str, Union[str, List[str]]]]] = None):
-        super().__init__(name="SQLiteTools")
-        self.db_path = db_path
-        self.db_tables = db_tables
-        # Registra os métodos para o Agno conseguir chamá-los como ferramentas
-        self.register(self.execute_query)
-        self.register(self.get_database_schema)
+class SQLiteTools(SQLTools):
+    """Use this function to run a SELECT SQL query and return the result.
 
-    def execute_query(self, query: str) -> str:
-        """Executa uma query SQL de leitura em um banco de dados e retorna o resultado."""
-        if not query.strip().lower().startswith("select"):
-            return "Erro: Apenas consultas de leitura (SELECT) são permitidas por este agente."
-
+        Args:
+            query (str): The query to run.
+            limit (int, optional): The number of rows to return. Defaults to 10. Use `None` to show all results.
+        Returns:
+            str: Result of the SQL query.
+        Notes:
+            - The result may be empty if the query does not return any data.
+    """
+    
+    def run_sql_query(self, query: str, limit: Optional[int] = 10) -> str:
+        """Use this function to run a SQL query and return the result."""
+        
+        # 1. Limpa espaços e joga tudo para minúsculo para validar com segurança
+        clean_query = query.strip().lower()
+        
+        # 2. Bloqueia comandos perigosos na raiz
+        if not clean_query.startswith("select"):
+            return "Erro: Operação negada. Este agente possui apenas permissões de LEITURA (SELECT)."
+            
+        palavras_proibidas = ["insert", "update", "delete", "drop", "alter", "replace", "create table"]
+        if any(palavra in clean_query for palavra in palavras_proibidas):
+            return "Erro: A query contém comandos de modificação não autorizados."
+            
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute(query)
-            columns = [description[0] for description in cursor.description]
-            rows = cursor.fetchall()
-            conn.close()
-            if not rows:
-                return "Nenhum registro encontrado para esta consulta."
-
-            result = [dict(zip(columns, row)) for row in rows]
-            return str(result)
+            # Se passar na validação, executa o comportamento original da ferramenta
+            return json.dumps(self.run_sql(sql=query, limit=limit), default=str)
         except Exception as e:
-            return f"Erro ao executar consulta no banco: {str(e)}"
-
-    def get_database_schema(self) -> str:
-        """Retorna o schema do banco. Se as tabelas foram passadas no parâmetro,
-        usa elas direto. Se não, varre o SQLite para descobrir dinamicamente."""
-        if self.db_tables:
-            schema_info = "Estrutura do Banco de Dados (Mapeamento Direto):\n"
-            for table_name, table_data in self.db_tables.items():
-                schema_info += f"- Tabela '{table_name}': Colunas -> {', '.join(table_data['colunas'])}, Contexto -> {table_data['contexto']}\n"
-            return schema_info
-
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT name FROM sqlite_master WHERE type='table';")
-            tables = cursor.fetchall()
-
-            schema_info = "Estrutura do Banco de Dados:\n"
-            for table in tables:
-                table_name = table[0]
-                cursor.execute(f"PRAGMA table_info({table_name});")
-                columns = [f"{col[1]} ({col[2]})" for col in cursor.fetchall()]
-                schema_info += f"- Tabela '{table_name}': Colunas -> {', '.join(columns)}\n"
-
-            conn.close()
-            return schema_info
-        except Exception as e:
-            return f"Erro ao ler o schema do banco: {str(e)}"
+            return f"Error running query: {e}"
 
 
 # ============= Run ============== #
 if __name__ == "__main__":
-    print(SQLiteTools(db_path=FINANCE_DB,
-          db_tables=FINANCE_TABLES).get_database_schema())
+    pass

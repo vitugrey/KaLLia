@@ -35,11 +35,10 @@ def chat_endpoint(request: ChatRequest, req: Request):
     Rota principal para conversar com o agente.
     Recebe a mensagem, o ID da sessão para o histórico e a imagem opcional em Base64.
     """
-    # Identificação do cliente
-    client_ip   = req.client.host if req.client else "desconhecido"
+    # Identificação do cliente pelo header customizado
     client_name = req.headers.get("x-client-name", "desconhecido")
 
-    logger.info(f"[CLIENTE] {client_name} | IP: {client_ip} | Session: '{request.session_id}'")
+    logger.info(f"[CLIENTE] {client_name} | Session: '{request.session_id}'")
     logger.debug(f"Mensagem: {request.message[:50]}...")
 
     try:

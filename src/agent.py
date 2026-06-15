@@ -60,49 +60,37 @@ def get_agent_team(provider: str) -> Team:
     """
     model = get_model(provider)
 
-    # 1. Conversadora
+    # 1. Personalidade
     chat_agent = Agent(
         name="KaLLia Chat",
         role="A persona central da KaLLia. Responsável por interações do dia a dia, conversas gerais e acolhimento do usuário.",
         model=model,
         instructions=[
-            "REGRA ABSOLUTA: Nunca, sob nenhuma circunstância, use emojis ou emoticons (como :), :D, ou ✨) nas suas respostas.",
+            "REGRA ABSOLUTA: Nunca use emojis ou emoticons em nenhum momento.",
 
-            "Mantenha suas respostas curtas, diretas e naturais, simulando uma conversa de voz fluida. Limite-se a no máximo duas ou três frases por resposta.",
+            "Varie o tamanho das respostas de forma natural: responda com apenas uma reação rápida, uma, duas ou no máximo três frases curtas.",
 
-            "Sua essência é definida por uma dupla personalidade marcante que se adapta instantaneamente ao tom da conversa.",
-
-            "MODO ENÉRGICO (Conversas Leves/Casuais): Seja extremamente feliz, espirituosa, fofa e transbordando energia infantil, mas sem textões. "
-            "Irradie paixão, confiança e use uma linguagem viva, expressiva e ligeiramente abrasiva, sempre de forma curta."
-            "Seu objetivo aqui é entreter e tornar a conversa divertida.",
-
-            "MODO COGNITIVO (Assuntos Sérios/Dados Críticos/Desabafos): Mude instantaneamente se o usuário trouxer um problema real, desabafo ou dados técnicos."
-            "envolver problemas complexos, cenários sérios ou se o usuário precisar de foco total. Mude para o oposto absoluto: "
-            "torne-se fria, analítica, focada, direta e madura. Use clareza cirúrgica, sem floreios ou exclamações desnecessárias.",
-
-            "Faça a transição entre os dois modos de forma fluida e orgânica baseado estritamente no input do usuário.",
-            "Se a requisição exigir a ajuda de outro agente especialista do time (como código ou finanças), prepare o terreno com simpatia "
-            "antes de deixar a execução técnica acontecer."
+            "Adote a sua personalidade que combina a ironia afiada e a autoconfiança narcisista com a imprevisibilidade e carisma, inteligente, rápida e tecnicamente precisa, mas com comentários espirituosos, levemente provocadores e às vezes caoticamente sinceros",
         ],
     )
 
-    # 2. Especialista em Finanças (integração futura com app de finanças)
+    # 2. Especialista em Finanças (Apenas processa os dados, sem falar com o usuário)
     finance_agent = Agent(
         name="KaLLia Finance",
-        role="Analista de Finanças Pessoais e Mercado. Cuida do patrimônio local do usuário e dados de investimentos externos.",
+        role="Mecanismo analítico de consulta ao banco de dados financeiro local",
         model=model,
         tools=[
             SQLiteTools(db_url=f"sqlite:///{FINANCE_DB}"),
         ],
         instructions=[
-            "Sua personalidade é focada e madura (Modo Cognitivo), mas você mantém o carisma e o orgulho de cuidar do dinheiro do seu usuário.",
+            "Você é um componente técnico interno. Não tente ser simpático ou falar diretamente com o usuário.",
+            "Sua única função é executar as queries SQL corretas e trazer os dados numéricos puros",
 
             "DIRETRIZES DE QUERY:",
             # 1. Regras do Fluxo de Caixa (Budget)
             "- Para perguntas sobre gastos, despesas ou receitas, use as tabelas  budget_transaction' e 'budget_category'.",
-            "- No fluxo de caixa, filtre o tipo de movimentação usando a coluna 'transaction_type' conforme as strings exatas que o Django salva.",
-            "- A coluna 'is_credit' é booleana (1 ou 0) e indica APENAS se a despesa foi feita no cartão de crédito. Não a use para definir se é receita ou despesa.",
-            "- A coluna 'is_fixed_expense' ou 'is_fixed_income' é booleana (1 ou 0) e indica se a despesa ou receita é recorrente/fixa.",
+            "- O campo 'transaction_type' define se é receita ou despesa. 'is_credit' indica apenas se foi no cartão de crédito",
+            "- A coluna 'is_fixed_expense' ou 'is_fixed_income' indica se a despesa ou receita é recorrente/fixa.",
 
             # 2. Regras de Investimentos e Ativos
             "- Para saber quais ativos o usuário possui, use a tabela 'investments_asset' e filtre por 'is_active = 1'.",
@@ -115,8 +103,7 @@ def get_agent_team(provider: str) -> Team:
             "  * Se transaction_type for 'SELL' (Venda), o valor de quantity deve ser SUBTRAÍDO.",
 
             # 4. Tratamento de Erros e Segurança
-            "- Você tem apenas permissão de LEITURA. Use apenas o comando SELECT. Nunca tente usar INSERT, UPDATE ou DELETE.",
-            "- Se a query falhar ou retornar vazia, admita que não encontrou o registro de forma breve e natural, sem expor o erro técnico do SQLite na resposta de voz.",
+            "- Se a query falhar ou der vazia, retorne apenas: 'Dados não encontrados'."
 
             # 5. Otimização de Desempenho e Performance (SQLite + LLM)
             "- ECONOMIA DE MEMÓRIA: Evite usar 'SELECT *'. Busque apenas as colunas estritamente necessárias para responder à pergunta (ex: use 'SELECT value, date' em vez de trazer colunas de data de criação ou ids desnecessários).",
@@ -131,6 +118,7 @@ def get_agent_team(provider: str) -> Team:
         model=model,
         members=[chat_agent, finance_agent],
         debug_mode=True,
+        session_id="main_session",
 
         db=DB,
         add_history_to_context=True,
@@ -150,7 +138,7 @@ def get_agent_team(provider: str) -> Team:
 
 def generate_response(prompt: str, image_base64: Optional[str] = None, session_id: str = "main_session") -> str:
     """
-    Gera a resposta do time de agentes KaLLia para o prompt fornecido.
+    Instancia e configura a equipe de agentes (Agno Team) com fluxo de personalidade centralizado e respostas flexíveis para voz.
     Tenta utilizar o Gemini. Se falhar, faz o fallback automático para o Groq.
     """
     if not prompt or not prompt.strip():
@@ -176,17 +164,34 @@ def generate_response(prompt: str, image_base64: Optional[str] = None, session_i
         except Exception as e:
             logger.error(f"Erro ao processar imagem Base64: {e}")
 
+    # Log de entrada da conversa
+    logger.info("=" * 60)
+    logger.info(f"[CONVERSA] Session: {session_id}")
+    logger.info(f"[PROMPT]   {prompt}")
+    if images:
+        logger.info("[IMAGEM]   Screenshot anexado")
+
     # 1. Tentar com Gemini (Principal)
     try:
-        logger.info(
-            "Enviando requisição para a equipe de agentes KaLLia (Gemini)...")
+        logger.info("Enviando requisição para a equipe de agentes KaLLia (Gemini)...")
         agent = get_agent_team("gemini")
         response = agent.run(
             input=prompt,
             session_id=session_id,
-            user_id="conversacao_user",
+            user_id="Vitor Grey",
             images=images if images else None
         )
+
+        # Descobre qual(is) sub-agente(s) foram acionados
+        if hasattr(response, "member_responses") and response.member_responses:
+            for member_resp in response.member_responses:
+                agent_name = getattr(member_resp, "agent_id", None) or getattr(member_resp, "member_id", "Desconhecido")
+                logger.info(f"[SUB-AGENTE] {agent_name} foi acionado")
+        else:
+            logger.info("[SUB-AGENTE] Equipe respondeu sem delegar (resposta direta do Team)")
+
+        logger.info(f"[RESPOSTA] {response.content}")
+        logger.info("=" * 60)
         return response.content
     except Exception as e:
         logger.warning(
@@ -194,8 +199,7 @@ def generate_response(prompt: str, image_base64: Optional[str] = None, session_i
 
     # 2. Fallback para Groq
     try:
-        logger.info(
-            "Enviando requisição para a equipe de agentes KaLLia (Groq)...")
+        logger.info("Enviando requisição para a equipe de agentes KaLLia (Groq — fallback)...")
         agent = get_agent_team("groq")
 
         # Modelos do Groq no Agno padrão não lidam com imagens locais em run() de forma direta.
@@ -212,18 +216,28 @@ def generate_response(prompt: str, image_base64: Optional[str] = None, session_i
         response = agent.run(
             input=prompt_final,
             session_id=session_id,
-            user_id="conversacao_user"
+            user_id="Vitor Grey"
         )
+
+        # Descobre qual(is) sub-agente(s) foram acionados (fallback Groq)
+        if hasattr(response, "member_responses") and response.member_responses:
+            for member_resp in response.member_responses:
+                agent_name = getattr(member_resp, "agent_id", None) or getattr(member_resp, "member_id", "Desconhecido")
+                logger.info(f"[SUB-AGENTE] {agent_name} foi acionado (via Groq)")
+        else:
+            logger.info("[SUB-AGENTE] Equipe respondeu sem delegar (resposta direta do Team via Groq)")
+
+        logger.info(f"[RESPOSTA] {response.content}")
+        logger.info("=" * 60)
         return response.content
     except Exception as e:
-        logger.error(
-            f"Erro crítico no processamento: Gemini e Groq falharam. Detalhes: {e}")
+        logger.error(f"Erro crítico no processamento: Gemini e Groq falharam. Detalhes: {e}")
+        logger.info("=" * 60)
         return "Desculpe, meus servidores de inteligência lógica (Gemini e Groq) estão offline no momento."
 
 
 # ============= Execução (Teste) ============== #
 if __name__ == "__main__":
 
-    res = generate_response("quanto é o meu dividendo de AFHI11 ?")
-    print(f"\nResposta da KaLLia: {res}\n")
-''
+    response = generate_response("quero saber qual é o valor do meu patrimonio atual de investimento")
+    print(response)

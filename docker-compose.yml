@@ -7,6 +7,6 @@ services:
       - "1904:1904"
     volumes:
       - .:/app
-      - ../Databases:/Databases
+      - ../databases:/databases
     env_file:
       - .env

@@ -1,5 +1,5 @@
 # ============ Importação ============ #
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from loguru import logger
 
 # pyrefly: ignore [missing-import]
@@ -30,22 +30,25 @@ def health_check():
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat_endpoint(request: ChatRequest):
+def chat_endpoint(request: ChatRequest, req: Request):
     """
     Rota principal para conversar com o agente.
     Recebe a mensagem, o ID da sessão para o histórico e a imagem opcional em Base64.
     """
-    logger.info(f"Nova requisição recebida na sessão '{request.session_id}'")
+    # Identificação do cliente
+    client_ip   = req.client.host if req.client else "desconhecido"
+    client_name = req.headers.get("x-client-name", "desconhecido")
+
+    logger.info(f"[CLIENTE] {client_name} | IP: {client_ip} | Session: '{request.session_id}'")
     logger.debug(f"Mensagem: {request.message[:50]}...")
-    
+
     try:
-        # Chama a lógica do agente que está em src/agent.py
         response_text = generate_response(
             prompt=request.message,
             image_base64=request.image_base64,
             session_id=request.session_id
         )
-        
+
         return ChatResponse(response=response_text)
     except Exception as e:
         logger.error(f"Erro ao processar endpoint /chat: {e}")
@@ -53,3 +56,4 @@ def chat_endpoint(request: ChatRequest):
             status_code=500,
             detail="Erro interno no servidor ao processar a resposta da IA."
         )
+

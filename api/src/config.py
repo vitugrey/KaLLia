@@ -6,30 +6,27 @@ from dotenv import load_dotenv
 from loguru import logger
 
 # ============ Caminhos ============= #
-_THIS = Path(__file__)
-SRC_DIR = _THIS.parent                     # \kallia\projetos\kallia-api\src
-PROJECT_ROOT = SRC_DIR.parent              # \kallia\projetos\kallia-api
-BASE_DIR = PROJECT_ROOT.parent             # \kallia\projetos
-DATA_DIR = BASE_DIR / "databases"          # \kallia\projetos\databases
+_THIS    = Path(__file__)
+SRC_DIR  = _THIS.parent          # kallia/api/src
+API_DIR  = SRC_DIR.parent        # kallia/api
+ROOT_DIR = API_DIR.parent        # kallia/  (raiz do repo)
+DATA_DIR = ROOT_DIR.parent / "databases"  # ../databases (fora do repo, mesmo lugar de antes)
 
-if DATA_DIR.exists():
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-AGENT_DB = DATA_DIR / "kallia-agent.db"
-FINANCE_DB = DATA_DIR / "kallia-financa.db"
-CONFIG_FILE = PROJECT_ROOT / "config.toml"
+AGENT_DB    = DATA_DIR / "kallia-agent.db"
+FINANCE_DB  = DATA_DIR / "kallia-financa.db"
+CONFIG_FILE = API_DIR / "config.toml"
 
-if (PROJECT_ROOT / ".env").exists():
-    load_dotenv(PROJECT_ROOT / ".env")
-    logger.debug(f".env carregado de: {PROJECT_ROOT / '.env'}")
+if (ROOT_DIR / ".env").exists():
+    load_dotenv(ROOT_DIR / ".env")
+    logger.debug(f".env carregado de: {ROOT_DIR / '.env'}")
 else:
     load_dotenv()
     logger.debug(".env não encontrado, usando variáveis de ambiente padrão")
 
 
 # ============ Leitura de Configurações ============= #
-
-
 def _load_config() -> dict:
     if CONFIG_FILE.exists():
         try:
@@ -64,7 +61,9 @@ if __name__ == "__main__":
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding='utf-8')
 
-    print(f"Raiz do Projeto: {PROJECT_ROOT}")
+    print(f"API DIR: {API_DIR}")
+    print(f"ROOT DIR: {ROOT_DIR}")
+    print(f"Data DIR: {DATA_DIR}")
     print(f"DB do Agente: {AGENT_DB}")
     print(f"Servidor: {HOST}:{PORT}")
     print(f"Modelo LLM: {GEMINI_MODEL_LLM}")

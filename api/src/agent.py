@@ -166,14 +166,14 @@ def generate_response(prompt: str, image_base64: Optional[str] = None, session_i
 
     # Log de entrada da conversa
     logger.info("=" * 60)
-    logger.info(f"[CONVERSA] Session: {session_id}")
-    logger.info(f"[PROMPT]   {prompt}")
+    logger.info(f"[CONVERSA] Session_id: {session_id}")
+    logger.info(f"[PROMPT] {prompt}")
     if images:
-        logger.info("[IMAGEM]   Screenshot anexado")
+        logger.info("[IMAGEM] Screenshot anexado")
 
     # 1. Tentar com Gemini (Principal)
     try:
-        logger.info("Enviando requisição para a equipe de agentes KaLLia (Gemini)...")
+        logger.info("[MODELO] GEMINI")
         agent = get_agent_team("gemini")
         response = agent.run(
             input=prompt,
@@ -187,8 +187,6 @@ def generate_response(prompt: str, image_base64: Optional[str] = None, session_i
             for member_resp in response.member_responses:
                 agent_name = getattr(member_resp, "agent_id", None) or getattr(member_resp, "member_id", "Desconhecido")
                 logger.info(f"[SUB-AGENTE] {agent_name} foi acionado")
-        else:
-            logger.info("[SUB-AGENTE] Equipe respondeu sem delegar (resposta direta do Team)")
 
         logger.info(f"[RESPOSTA] {response.content}")
         logger.info("=" * 60)
@@ -199,7 +197,7 @@ def generate_response(prompt: str, image_base64: Optional[str] = None, session_i
 
     # 2. Fallback para Groq
     try:
-        logger.info("Enviando requisição para a equipe de agentes KaLLia (Groq — fallback)...")
+        logger.info("[MODELO] GROQ FALLBACK")
         agent = get_agent_team("groq")
 
         # Modelos do Groq no Agno padrão não lidam com imagens locais em run() de forma direta.
@@ -224,8 +222,6 @@ def generate_response(prompt: str, image_base64: Optional[str] = None, session_i
             for member_resp in response.member_responses:
                 agent_name = getattr(member_resp, "agent_id", None) or getattr(member_resp, "member_id", "Desconhecido")
                 logger.info(f"[SUB-AGENTE] {agent_name} foi acionado (via Groq)")
-        else:
-            logger.info("[SUB-AGENTE] Equipe respondeu sem delegar (resposta direta do Team via Groq)")
 
         logger.info(f"[RESPOSTA] {response.content}")
         logger.info("=" * 60)

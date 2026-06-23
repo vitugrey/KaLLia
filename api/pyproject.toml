@@ -1,8 +1,7 @@
 [project]
-name = "kallia-server"
+name = "kallia-api"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "API do Kallia"
 requires-python = ">=3.13"
 dependencies = [
     "agno>=2.6.11",

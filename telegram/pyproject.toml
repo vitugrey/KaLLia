@@ -1,0 +1,11 @@
+[project]
+name = "kallia-telegram"
+version = "1.0.0"
+description = "Bot Telegram da KaLLia — cliente Pyrogram"
+requires-python = ">=3.11"
+dependencies = [
+    "pyrogram>=2.0.106",
+    "tgcrypto>=1.2.5",
+    "httpx>=0.28.0",
+    "loguru>=0.7.3",
+]

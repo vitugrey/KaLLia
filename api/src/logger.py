@@ -5,11 +5,7 @@ from loguru import logger
 from src.config import DATA_DIR
 
 # ============ Configuração de Logging ============ #
-
-LOG_DIR = DATA_DIR / "logs"
-LOG_DIR.mkdir(parents=True, exist_ok=True)
-
-LOG_FILE = LOG_DIR / "kallia.log"
+LOG_FILE = DATA_DIR / "kallia.log"
 
 # Formato padrão para arquivo (sem cores, com todos os detalhes)
 _FILE_FORMAT = (

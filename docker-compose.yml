@@ -1,12 +1,25 @@
 services:
+
   kallia-api:
-    build: .
+    build: ./api
     container_name: kallia-api
     restart: always
     ports:
       - "1904:1904"
     volumes:
-      - .:/app
+      - ./api:/app
       - ../databases:/databases
     env_file:
-      - .env
+      - ./.env
+
+  kallia-telegram:
+    build: ./telegram
+    container_name: kallia-telegram
+    restart: always
+    volumes:
+      - ./telegram:/app
+      - ../databases:/databases   # mesmo volume da API → logs no mesmo kallia.log
+    env_file:
+      - ./.env        # .env compartilhado na raiz do monorepo
+    depends_on:
+      - kallia-api

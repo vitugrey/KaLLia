@@ -620,7 +620,7 @@ wheels = [
 ]
 
 [[package]]
-name = "kallia-server"
+name = "kallia-api"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

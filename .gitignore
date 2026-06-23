@@ -14,3 +14,7 @@ wheels/
 
 # Local data & database files
 data/
+
+# Pyrogram session files (gerados na primeira autenticação do bot)
+*.session
+*.session-journal

@@ -18,3 +18,7 @@ data/
 # Pyrogram session files (gerados na primeira autenticação do bot)
 *.session
 *.session-journal
+
+# Scanned documents and PDFs
+assets/pdf/
+*.pdf

@@ -9,6 +9,7 @@ services:
     volumes:
       - ./api:/app
       - ../databases:/databases
+      - /sys:/sys:ro
     env_file:
       - ./.env
 
@@ -18,8 +19,25 @@ services:
     restart: always
     volumes:
       - ./telegram:/app
-      - ../databases:/databases   # mesmo volume da API → logs no mesmo kallia.log
+      - ../databases:/databases   # mesmo volume da API -> logs no mesmo kallia.log
     env_file:
       - ./.env        # .env compartilhado na raiz do monorepo
+    environment:
+      - KALLIA_API_URL=http://kallia-api:1904
+    depends_on:
+      - kallia-api
+
+  kallia-dashboard:
+    build: ./dashboard
+    container_name: kallia-dashboard
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dashboard:/app
+    env_file:
+      - ./.env
+    environment:
+      - KALLIA_API_URL=http://kallia-api:1904
     depends_on:
       - kallia-api

@@ -6,16 +6,17 @@ from dotenv import load_dotenv
 from loguru import logger
 
 # ============ Caminhos ============= #
-_THIS    = Path(__file__)
-SRC_DIR  = _THIS.parent          # kallia/api/src
-API_DIR  = SRC_DIR.parent        # kallia/api
+_THIS = Path(__file__)
+SRC_DIR = _THIS.parent          # kallia/api/src/
+API_DIR = SRC_DIR.parent        # kallia/api/
 ROOT_DIR = API_DIR.parent        # kallia/  (raiz do repo)
-DATA_DIR = ROOT_DIR.parent / "databases"  # ../databases (fora do repo, mesmo lugar de antes)
+# ../databases (fora do repo, mesmo lugar de antes)
+DATA_DIR = ROOT_DIR.parent / "databases"
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-AGENT_DB    = DATA_DIR / "kallia-agent.db"
-FINANCE_DB  = DATA_DIR / "kallia-financa.db"
+AGENT_DB = DATA_DIR / "kallia-agent.db"
+FINANCE_DB = DATA_DIR / "kallia-financa.db"
 CONFIG_FILE = API_DIR / "config.toml"
 
 if (ROOT_DIR / ".env").exists():
@@ -51,9 +52,10 @@ HOST = _server.get("host", "0.0.0.0")
 PORT = _server.get("port", 1904)
 
 # ============ Configurações do Agente ============ #
-GEMINI_MODEL_LLM = _agent.get("gemini_model_llm", "gemini-2.5-flash")
-GROQ_MODEL = _agent.get("groq_model", "llama-3.3-70b-versatile")
+GEMINI_MODEL_LLM = _agent.get("gemini_model_llm", "gemini-3.1-flash-lite")
+GROQ_MODEL = _agent.get("groq_model", "openai/gpt-oss-120b")
 PERSONALITY = _agent.get("personality", "Você é um assistente virtual.")
+
 
 # ============= Run (Teste) ============== #
 if __name__ == "__main__":
@@ -67,4 +69,4 @@ if __name__ == "__main__":
     print(f"DB do Agente: {AGENT_DB}")
     print(f"Servidor: {HOST}:{PORT}")
     print(f"Modelo LLM: {GEMINI_MODEL_LLM}")
-    print(f"Personalidade: {PERSONALITY}")
+    print(f"Personalidade: {PERSONALITY[:50]}...")

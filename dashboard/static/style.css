@@ -1,0 +1,636 @@
+/* ============================================================
+   KALLIA SMART MIRROR - THEME SYSTEM
+   Ultra-pure black (#000) for seamless two-way mirror reflection.
+   High-contrast typography and subtle neon luminescence.
+   ============================================================ */
+
+:root {
+  --bg-mirror: #000000;
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.65);
+  --text-subtle: rgba(255, 255, 255, 0.4);
+  
+  --accent-glow: #00e5ff;
+  --accent-glow-subtle: rgba(0, 229, 255, 0.15);
+  --accent-purple: #c084fc;
+  
+  --surface-glass: rgba(255, 255, 255, 0.05);
+  --surface-border: rgba(255, 255, 255, 0.12);
+  --surface-active: rgba(255, 255, 255, 0.1);
+  
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --radius-full: 9999px;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-mirror);
+  color: var(--text-main);
+  font-family: var(--font-display);
+  overflow: hidden;
+}
+
+/* Container Principal (Otimizado para Display 7" Touch) */
+.mirror-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100vw;
+  height: 100vh;
+  padding: 24px 32px;
+  background-color: var(--bg-mirror);
+  position: relative;
+}
+
+/* ============================================================
+   HEADER SUPERIOR (Relógio + Status Hardware)
+   ============================================================ */
+.mirror-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  z-index: 10;
+}
+
+.clock-widget {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-display {
+  font-size: 3.6rem;
+  font-weight: 300;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  color: var(--text-main);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.colon {
+  display: inline-block;
+  animation: pulse-colon 2s infinite ease-in-out;
+  color: var(--accent-glow);
+}
+
+.seconds-small {
+  font-size: 1.4rem;
+  font-family: var(--font-mono);
+  color: var(--text-subtle);
+  margin-left: 4px;
+}
+
+.date-display {
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 6px;
+  letter-spacing: 0.2px;
+  text-transform: capitalize;
+}
+
+/* Widget Sistema (Direita) */
+.system-widget {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(10px);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulse-dot 2.5s infinite;
+}
+
+.status-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.hardware-info {
+  display: flex;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+}
+
+/* ============================================================
+   CENTRO (Área de Reflexo + Card Interativo)
+   ============================================================ */
+.mirror-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 5;
+}
+
+.interaction-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  max-width: 680px;
+  width: 90%;
+  background: rgba(12, 12, 12, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 30px var(--accent-glow-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 8;
+}
+
+.interaction-card.hidden {
+  opacity: 0;
+  transform: translate(-50%, -44%) scale(0.95);
+  pointer-events: none;
+}
+
+.speaker-avatar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.avatar-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-glow);
+  opacity: 0.4;
+  transition: all 0.3s ease;
+}
+
+.speaking .avatar-ring {
+  opacity: 1;
+  animation: ring-pulse 1.2s infinite ease-out;
+}
+
+.avatar-core {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0284c7, #9333ea);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+}
+
+.interaction-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-prompt {
+  font-size: 0.95rem;
+  color: var(--accent-glow);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.user-prompt.hidden {
+  display: none;
+}
+
+.agent-response {
+  font-size: 1.35rem;
+  font-weight: 300;
+  line-height: 1.45;
+  color: var(--text-main);
+  letter-spacing: -0.2px;
+}
+
+.typing-placeholder {
+  color: var(--text-subtle);
+}
+
+/* Visualizador de Áudio (Waveform) */
+.waveform-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  opacity: 0.2;
+  transition: opacity 0.3s ease;
+}
+
+.speaking .waveform-container {
+  opacity: 1;
+}
+
+.waveform-container .bar {
+  width: 4px;
+  height: 8px;
+  background-color: var(--accent-glow);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.speaking .waveform-container .bar:nth-child(1) { animation: wave 0.8s infinite 0.1s ease-in-out; }
+.speaking .waveform-container .bar:nth-child(2) { animation: wave 0.8s infinite 0.3s ease-in-out; }
+.speaking .waveform-container .bar:nth-child(3) { animation: wave 0.8s infinite 0.2s ease-in-out; }
+.speaking .waveform-container .bar:nth-child(4) { animation: wave 0.8s infinite 0.4s ease-in-out; }
+.speaking .waveform-container .bar:nth-child(5) { animation: wave 0.8s infinite 0.15s ease-in-out; }
+
+/* ============================================================
+   RODAPÉ (Controles Push-to-Talk e Teclado)
+   ============================================================ */
+.mirror-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-bottom: 8px;
+  z-index: 10;
+}
+
+.footer-left, .footer-right {
+  width: 80px;
+  display: flex;
+}
+
+.footer-right {
+  justify-content: flex-end;
+}
+
+/* Botões Touch Discretos */
+.icon-touch-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.icon-touch-btn:active {
+  background: var(--surface-active);
+  color: var(--text-main);
+  transform: scale(0.92);
+}
+
+/* Botão Push-to-Talk (Central) */
+.footer-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ptt-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ptt-pulse-ring {
+  position: absolute;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-glow);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.recording .ptt-pulse-ring {
+  opacity: 1;
+  animation: ptt-pulse-anim 1.2s infinite ease-out;
+}
+
+.btn-ptt {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #111111, #1a1a1a);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.btn-ptt:active, .recording .btn-ptt {
+  background: linear-gradient(145deg, #0284c7, #0369a1);
+  border-color: var(--accent-glow);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.6);
+  transform: scale(1.08);
+}
+
+.ptt-hint {
+  font-size: 0.82rem;
+  color: var(--text-subtle);
+  letter-spacing: 0.3px;
+  font-weight: 400;
+  transition: color 0.2s;
+}
+
+.recording .ptt-hint {
+  color: var(--accent-glow);
+  font-weight: 500;
+}
+
+/* ============================================================
+   GAVETA DE TECLADO / INPUT TEXTO
+   ============================================================ */
+.keyboard-drawer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 16px 24px;
+  background: rgba(10, 10, 10, 0.92);
+  border-top: 1px solid var(--surface-border);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: center;
+  z-index: 50;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.keyboard-drawer.hidden {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+.drawer-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 640px;
+}
+
+.drawer-content input {
+  flex: 1;
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-full);
+  padding: 14px 22px;
+  font-size: 1.05rem;
+  color: #ffffff;
+  font-family: var(--font-display);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.drawer-content input:focus {
+  border-color: var(--accent-glow);
+  box-shadow: 0 0 15px var(--accent-glow-subtle);
+}
+
+.btn-send {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-glow);
+  color: #000000;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.2s;
+}
+
+.btn-send:active {
+  transform: scale(0.92);
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.8rem;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+/* ============================================================
+   ANIMAÇÕES
+   ============================================================ */
+@keyframes pulse-colon {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+
+@keyframes ptt-pulse-anim {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes ring-pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+@keyframes wave {
+  0%, 100% { height: 6px; }
+  50% { height: 22px; }
+}
+
+/* ============================================================
+   CARD DE CARTEIRA (Visual Rapido & Silencioso)
+   ============================================================ */
+.wallet-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  max-width: 520px;
+  width: 90%;
+  background: rgba(14, 14, 16, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-lg);
+  padding: 22px 26px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 229, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.wallet-card.hidden {
+  opacity: 0;
+  transform: translate(-50%, -44%) scale(0.95);
+  pointer-events: none;
+}
+
+.wallet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+
+.wallet-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.wallet-title svg {
+  color: var(--accent-glow);
+}
+
+.wallet-period {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent-glow);
+  background: rgba(0, 229, 255, 0.1);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+}
+
+.wallet-balance-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+}
+
+.balance-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-subtle);
+  font-weight: 500;
+}
+
+.balance-value {
+  font-size: 2.3rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #10b981;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+}
+
+.balance-value.negative {
+  color: #f43f5e;
+  text-shadow: 0 0 20px rgba(244, 63, 94, 0.35);
+}
+
+.wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.wallet-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-subtle);
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.wallet-stat.income .stat-value {
+  color: #34d399;
+}
+
+.wallet-stat.expense .stat-value {
+  color: #fb7185;
+}
+
+.wallet-stat.card .stat-value {
+  color: #38bdf8;
+}
+
+.wallet-footer-hint {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+  letter-spacing: 0.3px;
+}

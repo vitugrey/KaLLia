@@ -8,3 +8,13 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str
+
+
+class BudgetSummaryResponse(BaseModel):
+    ano: int
+    mes: int
+    receita_mes: float
+    despesa_mes: float
+    saldo_mes: float
+    cartao_mes: float
+    receita_ano: float

@@ -15,7 +15,7 @@ RUN uv sync --frozen --no-cache
 
 # Copia o código fonte do projeto
 COPY src/ ./src/
-COPY main.py config.toml ./
+COPY main.py ./
 
 # Cria a pasta data para a persistência do banco SQLite
 RUN mkdir -p data

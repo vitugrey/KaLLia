@@ -30,17 +30,23 @@ app.add_middleware(
 STATIC_DIR = Path(__file__).parent.parent / "static"
 
 class ChatInput(BaseModel):
-    message: str
-    session_id: Optional[str] = "mirror_session"
+    message: Optional[str] = ""
+    session_id: Optional[str] = "dashboard_session"
+    image_base64: Optional[str] = None
 
 @app.post("/api/chat")
 async def chat_text(input_data: ChatInput):
-    """Envia texto digitado para a KaLLia e retorna texto e áudio sintetizado."""
-    user_text = input_data.message.strip()
-    if not user_text:
-        raise HTTPException(status_code=400, detail="Mensagem vazia.")
+    """Envia texto e/ou imagem para a KaLLia e retorna texto e áudio sintetizado."""
+    user_text = (input_data.message or "").strip()
+    has_image = bool(input_data.image_base64)
 
-    logger.info(f"[MIRROR] Mensagem de texto recebida: '{user_text}'")
+    if not user_text and not has_image:
+        raise HTTPException(status_code=400, detail="Envie uma mensagem de texto ou uma imagem.")
+
+    if not user_text and has_image:
+        user_text = "Analise esta imagem."
+
+    logger.info(f"[DASHBOARD] Mensagem recebida: '{user_text}' (Imagem: {has_image})")
 
     # 1. Enviar para a KaLLia API
     try:
@@ -50,10 +56,10 @@ async def chat_text(input_data: ChatInput):
                 json={
                     "message": user_text,
                     "session_id": input_data.session_id,
-                    "image_base64": None,
+                    "image_base64": input_data.image_base64,
                 },
                 headers={
-                    "X-Client-Name": "smart-mirror",
+                    "X-Client-Name": "dashboard",
                     "Content-Type": "application/json",
                 },
             )
@@ -81,7 +87,7 @@ async def chat_text(input_data: ChatInput):
 @app.post("/api/voice/talk")
 async def voice_talk(
     file: UploadFile = File(...),
-    session_id: Optional[str] = Form("mirror_session")
+    session_id: Optional[str] = Form("dashboard_session")
 ):
     """Recebe o áudio do microfone (Push-to-talk), transcreve via STT e devolve resposta + voz."""
     logger.info(f"[MIRROR] Áudio recebido do microfone: {file.filename}, content-type: {file.content_type}")

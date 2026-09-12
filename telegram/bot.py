@@ -1,5 +1,6 @@
 # ============ Importações ============ #
 import os
+import base64
 import sys
 import asyncio
 import httpx
@@ -216,6 +217,62 @@ async def normal_handler(client: Client, message: Message):
         "Modo normal ativado!"
     )
 
+
+
+@app.on_message((filters.photo | filters.document) & filters.private)
+async def photo_handler(client: Client, message: Message):
+    """Recebe fotos ou imagens enviadas como documento, codifica em Base64 e envia para a API da KaLLia."""
+    if message.from_user.id != ALLOWED_USER_ID:
+        logger.warning(f"[TELEGRAM] Acesso negado para user_id={message.from_user.id}")
+        await message.reply_text("Acesso negado.")
+        return
+
+    # Se for documento, valida se é realmente imagem
+    if message.document:
+        mime = message.document.mime_type or ""
+        file_name = message.document.file_name or ""
+        is_img = mime.startswith("image/") or file_name.lower().endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp"))
+        if not is_img:
+            return
+
+    caption = (message.caption or "").strip() or "O que você vê nesta imagem? Analise com seu charme."
+    logger.info(f"[TELEGRAM] Imagem recebida com legenda: '{caption[:60]}'...")
+
+    await client.send_chat_action(message.chat.id, ChatAction.TYPING)
+
+    try:
+        # Baixa a foto diretamente na memória
+        photo_bytes_io = await client.download_media(message, in_memory=True)
+        if not photo_bytes_io:
+            await message.reply_text("Não consegui processar a foto enviada.")
+            return
+
+        image_base64 = base64.b64encode(photo_bytes_io.getvalue()).decode("utf-8")
+
+        async with httpx.AsyncClient(timeout=120.0) as http:
+            resp = await http.post(
+                f"{KALLIA_API_URL}/chat",
+                json={
+                    "message": caption,
+                    "session_id": SESSION_ID,
+                    "image_base64": image_base64,
+                },
+                headers={
+                    "X-Client-Name": "telegram-bot",
+                    "Content-Type": "application/json",
+                },
+            )
+            resp.raise_for_status()
+            kallia_response = resp.json().get("response", "Sem resposta da KaLLia.")
+
+        await message.reply_text(kallia_response)
+
+    except httpx.ConnectError:
+        logger.error(f"[TELEGRAM] Não foi possível conectar ao servidor KaLLia em {KALLIA_API_URL}")
+        await message.reply_text("Servidor da KaLLia fora do ar.")
+    except Exception as e:
+        logger.error(f"[TELEGRAM] Erro ao processar foto: {e}")
+        await message.reply_text("Ocorreu um erro ao processar sua foto.")
 
 
 @app.on_message(filters.text & filters.private & ~filters.command("start"))

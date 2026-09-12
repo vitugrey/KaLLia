@@ -26,6 +26,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const keyboardDrawer = document.getElementById('keyboard-drawer');
   const btnCloseDrawer = document.getElementById('btn-close-drawer');
 
+  // Elementos Multimodais (Anexo de Imagem & Ctrl+V)
+  const fileInputImage = document.getElementById('file-input-image');
+  const btnAttachImage = document.getElementById('btn-attach-image');
+  const imagePreviewBar = document.getElementById('image-preview-bar');
+  const imagePreviewImg = document.getElementById('image-preview-img');
+  const previewFilename = document.getElementById('preview-filename');
+  const btnRemoveImage = document.getElementById('btn-remove-image');
+  let currentImageBase64 = null;
+
   // Elementos do Card de Carteira (Visual Rápido & Silencioso)
   const walletCard = document.getElementById('wallet-card');
   const walletPeriod = document.getElementById('wallet-period');
@@ -96,13 +105,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================================================
   // 3. EXIBIÇÃO E FADE DA CONVERSA
   // ============================================================
-  function showInteraction(userText, replyText, isThinking = false) {
+  function showInteraction(userText, replyText, isThinking = false, imageB64 = null) {
     if (dismissTimer) clearTimeout(dismissTimer);
 
     interactionCard.classList.remove('hidden');
 
-    if (userText) {
-      userPrompt.textContent = `"${userText}"`;
+    if (userText || imageB64) {
+      userPrompt.innerHTML = '';
+      if (imageB64) {
+        const thumb = document.createElement('img');
+        thumb.className = 'prompt-thumb';
+        thumb.src = imageB64;
+        thumb.alt = 'Imagem enviada';
+        userPrompt.appendChild(thumb);
+      }
+      if (userText) {
+        const span = document.createElement('span');
+        span.textContent = `"${userText}"`;
+        userPrompt.appendChild(span);
+      }
       userPrompt.classList.remove('hidden');
     } else {
       userPrompt.classList.add('hidden');
@@ -145,19 +166,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     audioPlayer.onended = () => {
       interactionCard.classList.remove('speaking');
-      pttHint.textContent = 'Segure para falar';
+      pttHint.textContent = 'Toque para falar';
       scheduleAutoDismiss(6000);
     };
 
     audioPlayer.onerror = () => {
       interactionCard.classList.remove('speaking');
-      pttHint.textContent = 'Segure para falar';
+      pttHint.textContent = 'Toque para falar';
       scheduleAutoDismiss(4000);
     };
   }
 
   // ============================================================
-  // 5. PUSH-TO-TALK (MICROFONE)
+  // 5. MICROFONE (1 CLIQUE PARA GRAVAR / 1 CLIQUE PARA PARAR)
   // ============================================================
   async function startRecording() {
     if (isRecording) return;
@@ -181,8 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
       isRecording = true;
 
       document.body.classList.add('recording');
-      pttHint.textContent = 'Ouvindo... solte para enviar';
-      showInteraction('', 'Escutando você com total atenção...', false);
+      pttHint.textContent = 'Gravando... toque para finalizar';
+      showInteraction('', 'Escutando você... Toque no microfone para parar.', false);
 
     } catch (err) {
       console.error('Erro ao acessar microfone:', err);
@@ -195,10 +216,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isRecording) return;
     isRecording = false;
     document.body.classList.remove('recording');
-    pttHint.textContent = 'Pensando...';
+    pttHint.textContent = 'Processando...';
 
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
+    }
+  }
+
+  function toggleRecording() {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
     }
   }
 
@@ -207,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formData = new FormData();
     formData.append('file', audioBlob, 'mic_record.webm');
-    formData.append('session_id', 'mirror_session');
+    formData.append('session_id', 'dashboard_session');
 
     try {
       const res = await fetch('/api/voice/talk', {
@@ -227,34 +256,87 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Erro ao enviar áudio:', err);
       showInteraction('', 'Tive um pequeno problema ao processar seu áudio.', false);
       scheduleAutoDismiss(4000);
-      pttHint.textContent = 'Segure para falar';
+      pttHint.textContent = 'Toque para falar';
     }
   }
 
-  // Eventos Push-to-Talk (Mouse + Touchscreen de 7 polegadas)
-  pttBtn.addEventListener('mousedown', (e) => {
+  // Alternar gravação com 1 clique/toque (Start / Stop)
+  pttBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    startRecording();
+    toggleRecording();
   });
 
-  window.addEventListener('mouseup', (e) => {
-    if (isRecording) stopRecording();
-  });
+  // ============================================================
+  // FUNÇÕES MULTIMODAIS (ANEXO DE IMAGEM & CTRL+V)
+  // ============================================================
+  function setImageAttachment(base64Data, label = 'Imagem anexada') {
+    currentImageBase64 = base64Data;
+    if (imagePreviewImg) imagePreviewImg.src = base64Data;
+    if (previewFilename) previewFilename.textContent = label;
+    if (imagePreviewBar) imagePreviewBar.classList.remove('hidden');
+    if (btnAttachImage) btnAttachImage.classList.add('has-attachment');
 
-  pttBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    startRecording();
-  });
+    // Abre a gaveta para o usuário poder digitar uma legenda caso queira
+    keyboardDrawer.classList.remove('hidden');
+    textInput.focus();
+  }
 
-  pttBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    stopRecording();
-  });
+  function clearImageAttachment() {
+    currentImageBase64 = null;
+    if (imagePreviewImg) imagePreviewImg.src = '';
+    if (imagePreviewBar) imagePreviewBar.classList.add('hidden');
+    if (btnAttachImage) btnAttachImage.classList.remove('has-attachment');
+    if (fileInputImage) fileInputImage.value = '';
+  }
 
-  pttBtn.addEventListener('touchcancel', (e) => {
-    e.preventDefault();
-    stopRecording();
-  });
+  // Handler de Paste (Ctrl+V) na janela e no input
+  function handlePasteEvent(e) {
+    const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const blob = items[i].getAsFile();
+        if (!blob) continue;
+
+        e.preventDefault();
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setImageAttachment(event.target.result, 'Imagem colada da área de transferência');
+        };
+        reader.readAsDataURL(blob);
+        break;
+      }
+    }
+  }
+
+  window.addEventListener('paste', handlePasteEvent);
+  textInput.addEventListener('paste', handlePasteEvent);
+
+  // Anexo de arquivo via input
+  if (btnAttachImage && fileInputImage) {
+    btnAttachImage.addEventListener('click', () => {
+      fileInputImage.click();
+    });
+
+    fileInputImage.addEventListener('change', () => {
+      const file = fileInputImage.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImageAttachment(event.target.result, file.name);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (btnRemoveImage) {
+    btnRemoveImage.addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearImageAttachment();
+    });
+  }
 
   // ============================================================
   // 6. GAVETA DE TEXTO / TECLADO VIRTUAL
@@ -270,29 +352,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function handleSendText() {
     const text = textInput.value.trim();
-    if (!text) return;
+    const imageToSend = currentImageBase64;
+
+    if (!text && !imageToSend) return;
 
     textInput.value = '';
+    clearImageAttachment();
     keyboardDrawer.classList.add('hidden');
 
-    showInteraction(text, '', true);
+    const promptLabel = text || 'Analise esta imagem.';
+    showInteraction(promptLabel, '', true, imageToSend);
 
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, session_id: 'mirror_session' }),
+        body: JSON.stringify({
+          message: text,
+          session_id: 'dashboard_session',
+          image_base64: imageToSend,
+        }),
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
-      showInteraction(data.user_text, data.reply_text, false);
+      showInteraction(data.user_text, data.reply_text, false, imageToSend);
       playAudioResponse(data.audio_base64);
 
     } catch (err) {
-      console.error('Erro no envio de texto:', err);
-      showInteraction(text, 'Não consegui conectar ao servidor da KaLLia.', false);
+      console.error('Erro no envio de mensagem:', err);
+      showInteraction(promptLabel, 'Não consegui conectar ao servidor da KaLLia.', false, imageToSend);
       scheduleAutoDismiss(4000);
     }
   }
